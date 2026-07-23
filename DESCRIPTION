@@ -1,0 +1,18 @@
+Type: Package
+Package: main
+Title: Embedded R MAIN_MODULE Front-End for WebAssembly
+Version: 0.1.0
+Authors@R: c(
+    person("Isabel", "Paredes", , "isabel.paredes@quantstack.net", role = c("aut", "cre"))
+  )
+Description: Thin Emscripten MAIN_MODULE executable that embeds R via
+    Rf_initEmbeddedR and exposes C entry points for initializing a session and
+    evaluating R code from JavaScript. Intended for browser/WASM hosts such as
+    Lucent; not a CRAN package.
+License: GPL (>= 2)
+Encoding: UTF-8
+Depends:
+    R (>= 4.0.0)
+SystemRequirements: emscripten
+Biarch: false
+NeedsCompilation: yes

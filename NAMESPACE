@@ -1,0 +1,2 @@
+# main ships a MAIN_MODULE executable (linked outside R CMD INSTALL),
+# not an R shared library. Do not add useDynLib().
