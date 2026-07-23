@@ -16,6 +16,7 @@ POST_JS = $(SRC_DIR)/rmain_post.js
 RMAIN_LDFLAGS = -sMAIN_MODULE=1 \
 	-sMODULARIZE=1 \
 	-sEXPORT_NAME=Rmain \
+	-sEXPORT_ES6=1 \
 	-sSTACK_SIZE=5MB \
 	-sALLOW_MEMORY_GROWTH=1 \
 	-sEXPORTED_RUNTIME_METHODS=$(RUNTIME_METHODS) \
@@ -30,22 +31,22 @@ bindir = $(PREFIX)/bin
 
 .PHONY: all install clean
 
-all: Rmain
+all: Rmain.js
 
 $(SRC_DIR)/%.o: $(SRC_DIR)/%.c $(SRC_DIR)/rmain.h
 	$(CC) $(ALL_CPPFLAGS) $(CFLAGS) $(CPICFLAGS) -c $< -o $@
 
-Rmain: $(OBJECTS) $(PRE_JS) $(POST_JS)
+Rmain.js: $(OBJECTS) $(PRE_JS) $(POST_JS)
 	$(CC) $(CFLAGS) -o $@ $(OBJECTS) \
 		$(RMAIN_LDFLAGS) $(LDFLAGS) \
 		-L$(R_HOME)/lib -lR \
 		$(BLAS_LIBS) $(LAPACK_LIBS) $(FLIBS) $(LIBS) \
 		-sEXPORTED_FUNCTIONS=$(EXPORTED_FUNCTIONS)
 
-install: Rmain
+install: Rmain.js
 	mkdir -p "$(bindir)"
-	cp Rmain "$(bindir)/Rmain"
+	cp Rmain.js "$(bindir)/Rmain.js"
 	cp Rmain.wasm "$(bindir)/Rmain.wasm"
 
 clean:
-	rm -f $(OBJECTS) Rmain Rmain.wasm
+	rm -f $(OBJECTS) Rmain.js Rmain.wasm
