@@ -41,6 +41,7 @@ Rmain.js: $(OBJECTS) $(PRE_JS) $(POST_JS)
 		$(RMAIN_LDFLAGS) $(LDFLAGS) \
 		-L$(R_HOME)/lib -lR \
 		$(BLAS_LIBS) $(LAPACK_LIBS) $(FLIBS) $(LIBS) \
+		-L$(PREFIX)/lib -lz -lzstd -larchive \
 		-sEXPORTED_FUNCTIONS=$(EXPORTED_FUNCTIONS)
 
 install: Rmain.js
