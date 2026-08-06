@@ -54,10 +54,31 @@ RMAIN_KEEPALIVE SEXP rmain_eval(const char *code) {
     if (error_occurred) {
       const char *err_msg = "R evaluation error";
       SEXP err_chars = Rf_asChar(result);
+      SEXP msg_sexp = R_NilValue;
+      int msg_prot = 0;
       if (err_chars != R_NilValue && err_chars != NA_STRING) {
         err_msg = CHAR(err_chars);
+      } else {
+        /* R_tryEval often leaves result unusable; fall back to geterrmessage(). */
+        SEXP geterr = Rf_findFun(Rf_install("geterrmessage"), R_BaseEnv);
+        if (geterr != R_UnboundValue) {
+          SEXP msg_call = PROTECT(Rf_lang1(geterr));
+          msg_sexp = Rf_eval(msg_call, R_BaseEnv);
+          UNPROTECT(1);
+          PROTECT(msg_sexp);
+          msg_prot = 1;
+          if (TYPEOF(msg_sexp) == STRSXP && Rf_length(msg_sexp) > 0) {
+            const char *from_r = CHAR(STRING_ELT(msg_sexp, 0));
+            if (from_r != NULL && from_r[0] != '\0') {
+              err_msg = from_r;
+            }
+          }
+        }
       }
       rmain_set_error(err_msg);
+      if (msg_prot) {
+        UNPROTECT(1);
+      }
       UNPROTECT(3); /* result, parsed, src_vec */
       return R_NilValue;
     }
