@@ -27,7 +27,7 @@ int extractArchiveFromMemory(const void *data, size_t size)
 
     while ((r = archive_read_next_header(a, &entry)) == ARCHIVE_OK) {
 
-        printf("Extracting: %s\n", archive_entry_pathname(entry));
+        // printf("Extracting: %s\n", archive_entry_pathname(entry));
 
         r = archive_write_header(ext, entry);
         if (r != ARCHIVE_OK) {
