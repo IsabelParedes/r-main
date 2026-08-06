@@ -39,6 +39,7 @@ jobs:
         shell: bash -l {0}
         run: |
           micromamba create -f environment-wasm-host.yaml --platform=emscripten-wasm32
+          micromamba create -f environment-wasm-run.yaml --platform=emscripten-wasm32
 
           set -eux
 
