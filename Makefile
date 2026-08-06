@@ -1,7 +1,7 @@
 include $(R_HOME)/etc/Makeconf
 
 SRC_DIR = src
-OBJECTS = $(SRC_DIR)/rmain_init.o $(SRC_DIR)/rmain_eval.o
+OBJECTS = $(SRC_DIR)/rmain_init.o $(SRC_DIR)/rmain_eval.o $(SRC_DIR)/untar.o
 
 # Extra -I so headers resolve even if Makeconf CPPFLAGS has a stale host path.
 ALL_CPPFLAGS = -I$(R_HOME)/include $(CPPFLAGS)
@@ -41,7 +41,6 @@ Rmain.js: $(OBJECTS) $(PRE_JS) $(POST_JS)
 		$(RMAIN_LDFLAGS) $(LDFLAGS) \
 		-L$(R_HOME)/lib -lR \
 		$(BLAS_LIBS) $(LAPACK_LIBS) $(FLIBS) $(LIBS) \
-		-L$(PREFIX)/lib -lz -lzstd -larchive \
 		-sEXPORTED_FUNCTIONS=$(EXPORTED_FUNCTIONS)
 
 install: Rmain.js
