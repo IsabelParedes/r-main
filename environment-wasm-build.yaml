@@ -4,3 +4,4 @@ channels:
   - conda-forge
 dependencies:
   - emscripten_emscripten-wasm32
+  - empack
