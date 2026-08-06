@@ -1,0 +1,143 @@
+<!doctype html>
+<html>
+<body>
+
+<h3>Downloading packages</h3>
+
+<progress id="progress" value="0" max="100" style="width:400px"></progress>
+<div id="status">Starting...</div>
+
+<hr>
+
+<h3>Run R code</h3>
+
+<textarea
+    id="rcode"
+    rows="10"
+    cols="80"
+    placeholder="Enter R code here..."
+    text="aaa"
+>
+print("Hello from R!")
+</textarea>
+
+<br>
+
+<button id="runButton" disabled>
+    Run
+</button>
+
+<h3>Output</h3>
+
+<pre
+    id="output_box"
+    style="
+        width:600px;
+        height:200px;
+        overflow:auto;
+        border:1px solid #ccc;
+        padding:10px;
+    "
+></pre>
+
+
+<script>
+const progress = document.getElementById("progress");
+const status = document.getElementById("status");
+
+const rcode = document.getElementById("rcode");
+const runButton = document.getElementById("runButton");
+const outputBox = document.getElementById("output_box");
+
+const worker = new Worker("worker.js");
+
+let ready = false;
+let outputBuffer = "";
+
+worker.onmessage = (e) => {
+    const msg = e.data;
+
+    switch (msg.type) {
+
+        case "ready":
+            ready = true;
+            runButton.disabled = false;
+            status.textContent = "Ready";
+            break;
+
+
+        case "download-progress":
+            progress.value = msg.percent ?? 0;
+
+            status.textContent =
+                `Downloaded ${
+                    (msg.downloadedBytes / 1024 / 1024).toFixed(1)
+                } MB / ${
+                    (msg.totalBytes / 1024 / 1024).toFixed(1)
+                } MB (${msg.percent?.toFixed(1) ?? "?"}%)`;
+            break;
+
+
+        case "file-complete":
+            console.log(
+                `Finished ${msg.filename} (${msg.size} bytes)`
+            );
+            break;
+
+
+        case "filesystem-ready":
+            progress.value = 100;
+            status.textContent = "Ready!";
+            runButton.disabled = false;
+            break;
+
+
+        case "print":
+            console.log("PRINT from worker:", msg.text);
+
+            outputBuffer += msg.text + "\n";
+
+            outputBox.textContent = outputBuffer;
+            outputBox.scrollTop = outputBox.scrollHeight;
+            break;
+
+
+        case "codeExecuted":
+            console.log("Executed:", msg.code);
+            break;
+
+
+        case "error":
+            outputBox.textContent +=
+                "ERROR: " + msg.error + "\n";
+
+            outputBox.scrollTop = outputBox.scrollHeight;
+            break;
+    }
+};
+
+
+runButton.onclick = () => {
+    const code = rcode.value.trim();
+
+    if (!code) {
+        return;
+    }
+
+    // clear previous output
+    outputBox.textContent = "";
+
+    worker.postMessage({
+        type: "runRCode",
+        code
+    });
+};
+
+
+worker.postMessage({
+    type: "init"
+});
+</script>
+
+</body>
+</html>
