@@ -4,8 +4,9 @@ SCRIPT_DIR=$(cd $(dirname $0); pwd)
 GLUE_DIR=$SCRIPT_DIR/glue
 
 
-HOST_PREFIX=$MAMBA_ROOT_PREFIX/envs/r-main-wasm-host
 BUILD_PREFIX=$MAMBA_ROOT_PREFIX/envs/r-main-wasm-build
+HOST_PREFIX=$MAMBA_ROOT_PREFIX/envs/r-main-wasm-host
+RUN_PREFIX=$MAMBA_ROOT_PREFIX/envs/r-main-wasm-run
 
 # delet shard libz.so
 rm -f $HOST_PREFIX/lib/libz.so
@@ -30,11 +31,10 @@ cp $SCRIPT_DIR/Rmain.wasm $GLUE_DIR/Rmain.wasm
 
 
 
-# pack the HOST_PREFIX via empack to multiple *.tar.gz files
-
+# pack the RUN_PREFIX via empack to multiple *.tar.gz files
 # only if $GLUE_DIR/empack_env_meta.json does not exist
 if [ ! -f $GLUE_DIR/empack_env_meta.json ]; then
 
-    echo "pack the HOST_PREFIX via empack to multiple *.tar.gz files"
-    empack pack env --env-prefix $HOST_PREFIX --outdir $GLUE_DIR  
+    echo "pack the RUN_PREFIX via empack to multiple *.tar.gz files"
+    empack pack env --env-prefix $RUN_PREFIX --outdir $GLUE_DIR  
 fi  
