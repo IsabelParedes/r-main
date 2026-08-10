@@ -1,6 +1,4 @@
 
-   
-
 self.onmessage = async (e) => {
     console.log("got message", e.data);
 
@@ -16,7 +14,7 @@ self.onmessage = async (e) => {
                     // Ensure wasm is found next to the JS file.
                     return path;
                 },
-                 print: (text) => {
+                print: (text) => {
                     console.log("[R PRINT]", text);
                     self.postMessage({
                         type: "print",
@@ -24,7 +22,7 @@ self.onmessage = async (e) => {
                     });
                 }
             });
-            
+
 
             self.postMessage({
                 type: "ready"
@@ -42,8 +40,18 @@ self.onmessage = async (e) => {
 
 
 
-            await Module.populateFilesystem();
+            await Module.populateFilesystem({
+                onProgress: ({ downloadedBytes, totalBytes, percent }) => {
+                    self.postMessage({
+                        type: "download-progress",
+                        downloadedBytes,
+                        totalBytes,
+                        percent,
+                    });
+                },
+            });
             Module.initR();
+            self.postMessage({ type: "filesystem-ready" });
 
         } catch (err) {
             self.postMessage({
@@ -54,7 +62,6 @@ self.onmessage = async (e) => {
     }
     else if (e.data.type === "runRCode") {
         try {
-   
             const code = e.data.code;
 
             // Call the R function to evaluate the code.

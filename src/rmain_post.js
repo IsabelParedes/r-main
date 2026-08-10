@@ -145,63 +145,102 @@ Module["fetchUrls"] = async function fetchUrls(
 
 
 Module["extractArchiveFromMemory"] = function (myTypedArray) {
-    var buf = Module._malloc(myTypedArray.length * myTypedArray.BYTES_PER_ELEMENT);
-    Module.HEAPU8.set(myTypedArray, buf);
-    Module.ccall('extractArchiveFromMemory', 'number', ['number', 'number'], [buf, myTypedArray.length * myTypedArray.BYTES_PER_ELEMENT]);
-    Module._free(buf);
-}
+  var nbytes = myTypedArray.length * myTypedArray.BYTES_PER_ELEMENT;
+  var buf = Module._malloc(nbytes);
+  Module.HEAPU8.set(myTypedArray, buf);
+  var rc = Module.ccall(
+    "extractArchiveFromMemory",
+    "number",
+    ["number", "number"],
+    [buf, nbytes]
+  );
+  Module._free(buf);
+  if (rc !== 0) {
+    throw new Error("extractArchiveFromMemory failed with status " + rc);
+  }
+  return rc;
+};
 
-
-
-
-Module["populateFilesystem"] =  async function () {
-
-  // fetch empack_env_meta.json
-
-  const response = await fetch("./empack_env_meta.json");
-  var empack_env_meta = await response.json();
-  console.log("empack_env_meta:", empack_env_meta);
-  
-
-  var packages = empack_env_meta.packages;
-
-  // list of urls 
-  let urls = [];
-
-  for (const pkg of packages) {
-    const filename = pkg.filename;
-    const url = `./${filename}`;
-    urls.push(url);
+/**
+ * Fetch an empack env meta file and extract each package archive into the
+ * Emscripten filesystem.
+ *
+ * @param {object} [options]
+ * @param {string} [options.metaUrl="./empack_env_meta.json"]
+ *   URL of empack_env_meta.json (absolute or relative to the worker/page).
+ * @param {string} [options.packagesBaseUrl]
+ *   Base URL for package archives. Defaults to the directory containing metaUrl.
+ * @param {number} [options.concurrency=5]
+ * @param {function} [options.onProgress]
+ *   Called with `{ downloadedBytes, totalBytes, percent }` during downloads.
+ * @returns {Promise<object>} The parsed empack env meta object.
+ */
+Module["populateFilesystem"] = async function ({
+  metaUrl = "./empack_env_meta.json",
+  packagesBaseUrl,
+  concurrency = 5,
+  onProgress = () => {},
+} = {}) {
+  const metaHref = new URL(metaUrl, self.location.href).href;
+  const response = await fetch(metaHref);
+  if (!response.ok) {
+    throw new Error(
+      "Failed to fetch " + metaHref + ": HTTP " + response.status
+    );
+  }
+  const empack_env_meta = await response.json();
+  const packages = Array.isArray(empack_env_meta.packages)
+    ? empack_env_meta.packages
+    : [];
+  // `empack pack append` registers extra archives under `mounts`, not `packages`.
+  const mounts = Array.isArray(empack_env_meta.mounts)
+    ? empack_env_meta.mounts
+    : [];
+  const archives = packages.concat(mounts);
+  if (archives.length === 0) {
+    throw new Error("No packages or mounts listed in " + metaHref);
   }
 
+  const baseHref = new URL(
+    packagesBaseUrl != null ? packagesBaseUrl : ".",
+    packagesBaseUrl != null ? self.location.href : metaHref
+  ).href;
 
- // fetch all urls with concurrency limit
- await Module.fetchUrls(urls, {
-    concurrency: 5,
-    onProgress: ({ downloadedBytes, totalBytes, percent }) => {
-        self.postMessage({
-        type: "download-progress",
-        downloadedBytes,
-        totalBytes,
-        percent,
-        });
-    },
-
-    onDone: async ({ index, url, arrayBuffer, error }) => {
-      if (error) {
-        console.error(`Failed to fetch ${url}:`, error);
-        return;
-      }
-      
-      const pkg = packages[index];
-      const filename = pkg.filename;
-      const filePath = `/${filename}`;
-      console.log(`Writing ${filePath} to Emscripten FS...`);
-      Module.extractArchiveFromMemory(new Uint8Array(arrayBuffer));
+  const urls = archives.map(function (pkg) {
+    if (!pkg || !pkg.filename) {
+      throw new Error("Archive entry missing filename in " + metaHref);
     }
+    return new URL(pkg.filename, baseHref).href;
   });
 
+  const errors = [];
+  await Module.fetchUrls(urls, {
+    concurrency: concurrency,
+    onProgress: onProgress,
+    onDone: async function ({ url, arrayBuffer, error }) {
+      if (error) {
+        errors.push({ url: url, error: error });
+        return;
+      }
+      try {
+        Module.extractArchiveFromMemory(new Uint8Array(arrayBuffer));
+      } catch (extractError) {
+        errors.push({ url: url, error: extractError });
+      }
+    },
+  });
 
-}
+  if (errors.length > 0) {
+    var detail = errors
+      .map(function (e) {
+        return e.url + ": " + (e.error && e.error.message ? e.error.message : e.error);
+      })
+      .join("; ");
+    throw new Error(
+      "populateFilesystem failed for " + errors.length + " archive(s): " + detail
+    );
+  }
 
+  return empack_env_meta;
+};
 
