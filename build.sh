@@ -8,7 +8,7 @@ BUILD_PREFIX=$MAMBA_ROOT_PREFIX/envs/r-main-wasm-build
 HOST_PREFIX=$MAMBA_ROOT_PREFIX/envs/r-main-wasm-host
 RUN_PREFIX=$MAMBA_ROOT_PREFIX/envs/r-main-wasm-run
 
-# delet shard libz.so
+# delete shared libz.so
 rm -f $HOST_PREFIX/lib/libz.so
 
 export R_HOME=$HOST_PREFIX/lib/R
@@ -17,7 +17,7 @@ export PREFIX=$HOST_PREFIX
 
 ls $R_HOME/lib/
 
-# make clean 
+# make clean
 make
 
 # copy result to glue dir
@@ -36,5 +36,5 @@ cp $SCRIPT_DIR/Rmain.wasm $GLUE_DIR/Rmain.wasm
 if [ ! -f $GLUE_DIR/empack_env_meta.json ]; then
 
     echo "pack the RUN_PREFIX via empack to multiple *.tar.gz files"
-    empack pack env --env-prefix $RUN_PREFIX --outdir $GLUE_DIR  
-fi  
+    empack pack env --env-prefix $RUN_PREFIX --outdir $GLUE_DIR
+fi

@@ -27,17 +27,13 @@ jobs:
           - name: Github-page
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Install micromamba
         uses: mamba-org/setup-micromamba@v3
         with:
           environment-file: environment-wasm-build.yaml
           init-shell: bash
-          environment-name: r-main-wasm-build
-
-      - name: Set ncpus
-        run: echo "ncpus=$(nproc --all)" >> $GITHUB_ENV
 
       - name: Build r-main
         shell: bash -l {0}
@@ -46,16 +42,7 @@ jobs:
           micromamba create -f environment-wasm-run.yaml --platform=emscripten-wasm32
 
           set -eux
-
-          # to avoid errors like:
-          #   clang++: error: unsupported option '-march=' for target 'wasm32-unknown-emscripten'
-          # we just clear the flags here
-          export CFLAGS=""
-          export CXXFLAGS=""
-          export LDFLAGS=""
-
           ./build.sh
-       
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v5
