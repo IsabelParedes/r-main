@@ -13,7 +13,9 @@ EXPORTED_FUNCTIONS = _main,_rmain_init,_rmain_eval,_rmain_last_error,_extractArc
 PRE_JS = $(SRC_DIR)/rmain_pre.js
 POST_JS = $(SRC_DIR)/rmain_post.js
 
-# All functions are exported with MAIN_MODULE=1.
+# MAIN_MODULE=1 with ERROR_ON_UNDEFINED_SYMBOLS=1: symbols from libR.so
+# (a SIDE_MODULE) are resolved at link time via the GOT, avoiding JS stubs
+# that cause wasm↔JS boundary crossings on every R API call.
 RMAIN_LDFLAGS = -sMAIN_MODULE=1 \
 	-sMODULARIZE=1 \
 	-sEXPORT_NAME=Rmain \
@@ -27,7 +29,7 @@ RMAIN_LDFLAGS = -sMAIN_MODULE=1 \
 	-sEXPORTED_RUNTIME_METHODS=$(RUNTIME_METHODS) \
 	-sFORCE_FILESYSTEM=1 \
 	-sINVOKE_RUN=0 \
-	-sERROR_ON_UNDEFINED_SYMBOLS=0 \
+	-sERROR_ON_UNDEFINED_SYMBOLS=1 \
 	--minify=0 \
 	--pre-js=$(PRE_JS) \
 	--post-js=$(POST_JS)
@@ -47,7 +49,7 @@ Rmain.js: $(OBJECTS) $(PRE_JS) $(POST_JS)
 		-L$(PREFIX)/lib \
 		-larchive \
 		-lzstd \
-		-L$(R_HOME)/lib -lR \
+		$(R_HOME)/lib/libR.so \
 		$(BLAS_LIBS) $(LAPACK_LIBS) $(FLIBS) $(LIBS) \
 		-sEXPORTED_FUNCTIONS=$(EXPORTED_FUNCTIONS)
 
