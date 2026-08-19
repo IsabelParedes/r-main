@@ -5,5 +5,6 @@ Module["preRun"] = [].concat(Module["preRun"] || [], () => {
     R_LIBS_USER: "NULL",
     R_LIBS_SITE: "NULL",
     LD_LIBRARY_PATH: "/lib/R/lib:/lib",
+    R_ENABLE_JIT: "0",
   });
 });
