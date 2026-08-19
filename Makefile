@@ -7,6 +7,7 @@ OBJECTS = $(SRC_DIR)/rmain_init.o $(SRC_DIR)/rmain_eval.o $(SRC_DIR)/untar.o
 ALL_CPPFLAGS = -I$(R_HOME)/include $(CPPFLAGS)
 
 RUNTIME_METHODS = ccall,cwrap,FS,ENV,HEAPU8,getEnvStrings,TTY,UTF8ToString,stringToUTF8OnStack,stackAlloc,setValue,getValue
+EXPORTED_FUNCTIONS = _main,_rmain_init,_rmain_eval,_rmain_last_error,_extractArchiveFromMemory,_malloc,_free
 
 # Embed front-end MAIN flags (adapted from r-base config.site MAIN_LDFLAGS).
 PRE_JS = $(SRC_DIR)/rmain_pre.js
@@ -22,6 +23,7 @@ RMAIN_LDFLAGS = -sMAIN_MODULE=1 \
 	-sALLOW_MEMORY_GROWTH=1 \
 	-fwasm-exceptions \
 	-sSUPPORT_LONGJMP=wasm \
+	-sEXPORTED_FUNCTIONS=$(EXPORTED_FUNCTIONS) \
 	-sEXPORTED_RUNTIME_METHODS=$(RUNTIME_METHODS) \
 	-sFORCE_FILESYSTEM=1 \
 	-sINVOKE_RUN=0 \
@@ -46,7 +48,8 @@ Rmain.js: $(OBJECTS) $(PRE_JS) $(POST_JS)
 		-larchive \
 		-lzstd \
 		-L$(R_HOME)/lib -lR \
-		$(BLAS_LIBS) $(LAPACK_LIBS) $(FLIBS) $(LIBS)
+		$(BLAS_LIBS) $(LAPACK_LIBS) $(FLIBS) $(LIBS) \
+		-sEXPORTED_FUNCTIONS=$(EXPORTED_FUNCTIONS)
 
 install: Rmain.js
 	mkdir -p "$(bindir)"
