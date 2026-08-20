@@ -30,7 +30,6 @@ RMAIN_LDFLAGS = -sMAIN_MODULE=1 \
 	-sFORCE_FILESYSTEM=1 \
 	-sINVOKE_RUN=0 \
 	-sERROR_ON_UNDEFINED_SYMBOLS=1 \
-	--minify=0 \
 	--pre-js=$(PRE_JS) \
 	--post-js=$(POST_JS)
 
