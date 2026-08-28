@@ -8,5 +8,6 @@ Module["preRun"] = [].concat(Module["preRun"] || [], () => {
     R_ENVIRON: "/lib/R/etc/Renviron",
     LD_LIBRARY_PATH: "/lib/R/lib:/lib",
     R_ENABLE_JIT: "0",
+    PYTHONHOME: "/",
   });
 });
