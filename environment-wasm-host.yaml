@@ -17,4 +17,4 @@ dependencies:
   - libpython ==3.13.*
   - libffi
   - sqlite
-  - openssl
+  - openssl ==3.6.*
