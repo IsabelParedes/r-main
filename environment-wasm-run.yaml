@@ -4,6 +4,6 @@ channels:
   - conda-forge
 dependencies:
   - r-base
-  - python
+  - python ==3.13.*
   - numpy
   - scikit-learn
