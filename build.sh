@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -euxo pipefail
+
 SCRIPT_DIR=$(cd $(dirname $0); pwd)
 GLUE_DIR=$SCRIPT_DIR/glue
 
@@ -9,7 +11,9 @@ HOST_PREFIX=$MAMBA_ROOT_PREFIX/envs/r-main-wasm-host
 RUN_PREFIX=$MAMBA_ROOT_PREFIX/envs/r-main-wasm-run
 
 # delete shared libz.so
-rm -f $HOST_PREFIX/lib/libz.so
+rm $HOST_PREFIX/lib/libz.so || true
+rm $HOST_PREFIX/lib/libssl.so* || true
+rm $HOST_PREFIX/lib/libcrypto.so* || true
 
 export R_HOME=$HOST_PREFIX/lib/R
 export R_SHARE_DIR=$R_HOME/share
