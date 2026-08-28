@@ -12,3 +12,9 @@ dependencies:
   - r-base
   - zstd
   - libarchive
+  # For the r-py output: libpython statically linked into RPY executable.
+  - python
+  - libpython
+  - libffi
+  - sqlite
+  - openssl
