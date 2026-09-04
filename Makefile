@@ -9,8 +9,6 @@ ALL_CPPFLAGS = -I$(R_HOME)/include $(CPPFLAGS)
 RUNTIME_METHODS = ccall,cwrap,FS,ENV,HEAPU8,getEnvStrings,TTY,UTF8ToString,stringToUTF8OnStack,stackAlloc,setValue,getValue
 EXPORTED_FUNCTIONS = _main,_rmain_init,_rmain_eval,_rmain_last_error,_extractArchiveFromMemory,_malloc,_free
 
-RPY_LIBS = -lbz2 -lz -lsqlite3 -lffi -lssl -lcrypto -llzma -lpython3.13
-
 # Embed front-end MAIN flags (adapted from r-base config.site MAIN_LDFLAGS).
 PRE_JS = $(SRC_DIR)/rmain_pre.js
 POST_JS = $(SRC_DIR)/rmain_post.js
@@ -46,9 +44,7 @@ Rmain.js: $(OBJECTS) $(PRE_JS) $(POST_JS)
 	$(CC) $(CFLAGS) -o $@ $(OBJECTS) \
 		$(RMAIN_LDFLAGS) $(LDFLAGS) -Wl,--allow-multiple-definition \
 		-L$(PREFIX)/lib \
-		-larchive \
-		-lzstd \
-		$(RPY_LIBS) \
+		-larchive -lzstd $(RPY_LIBS) \
 		$(R_HOME)/lib/libR.so \
 		$(BLAS_LIBS) $(LAPACK_LIBS) $(FLIBS) $(LIBS) \
 		-sEXPORTED_FUNCTIONS=$(EXPORTED_FUNCTIONS)

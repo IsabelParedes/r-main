@@ -18,8 +18,7 @@ rm $HOST_PREFIX/lib/libcrypto.so* || true
 export R_HOME=$HOST_PREFIX/lib/R
 export R_SHARE_DIR=$R_HOME/share
 export PREFIX=$HOST_PREFIX
-
-ls $R_HOME/lib/
+export RPY_LIBS="-lbz2 -lz -lsqlite3 -lffi -lssl -lcrypto -llzma -lpython3.13"
 
 # make clean
 make
